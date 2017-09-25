@@ -1,0 +1,77 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct people{
+    int num;
+    int passwd;
+    struct people *next;
+}Node;
+
+int number; //剩余人数
+
+/*创建链表，存储密码等信息*/
+int getPasswd(Node *pHead) {
+    int i;
+    Node *pNew = NULL ,*pEnd = pHead;
+    printf("Input the number of people:\n");
+    scanf("%d", &number);
+
+    for(i = 0; i < number; i++) {
+        pNew = (Node *)malloc(sizeof(Node));
+
+        pNew -> num = i+1;
+        printf("Input No.%d passwd:\n");
+        scanf("%d", &pNew -> passwd);
+
+        pEnd -> next = pNew;
+        pEnd = pNew;
+    }
+
+    pNew -> next = pHead -> next; //循环链表
+}
+
+void deleteNode(Node *pHead) {
+    int n, i;
+    Node *p = pHead -> next, *pre, *q;
+
+    printf("\nDelete order:\n");
+
+    if(number == 1) {
+        printf("1 ");
+        return;
+    }    
+
+    n = p -> passwd;
+
+    while(number-- > 0) {
+        while(n--) {
+            pre = p;
+            p = p -> next;
+        }
+
+        printf("%d ", p -> num);
+        n = p -> passwd; //保存密码
+
+        pre -> next = p -> next; //删除
+        q = p; //暂存被删除节点，用于释放
+        p = p -> next;
+        free(q);
+
+        if(number == 1) {
+            printf("%d\n", p -> num);
+            return ;
+        }
+    }
+}
+
+int main (void) {
+    Node *pHead = NULL;
+    pHead = (Node *)malloc(sizeof(Node));
+    pHead -> next = NULL;
+
+    getPasswd(pHead);
+    deleteNode(pHead);
+    
+    return 0;
+}
+
