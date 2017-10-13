@@ -1,93 +1,242 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-typedef struct node  {
-	int a;
-	int b;
-	struct node *next;
+typedef struct node {
+    int a;
+    int b;
+    struct node *next;
 }Node;
 
-/*创建链表*/
-Node * create_list(Node *pHead) {
-	Node *pNew = NULL, *pEnd = pHead;
-	int a, b;
+void create_list(Node *pHead) {
+    Node *pre = pHead, *pNew = NULL;
+    int a, b;
+    printf("Input coefficient and index (0 to exit):\n");
 
-	while(1) {
-		printf("Input coefficient and index (0 to exit):\n");
-		scanf("%d %d", &a, &b);
+    while(1) {
+        scanf("%d %d", &a, &b);
 
-		if(!a) {  //结束
-			pNew -> next = NULL;
-			return pHead;
-		}
+        if(!a) {  //输入结束
+            return;
+        }
 
-		pNew = (Node *)malloc(Node);
-		if(pNew == NULL) {
-			printf("malloc error\n");
-			return ;
-		}
-		pNew -> a = a;
-		pNew -> b = b;
+        pNew = (Node *)malloc(sizeof(Node));
+        if(pNew == NULL) {  //内存客空间申请失败
+            printf("malloc error\n");
+            return;
+        }
 
-		pEnd -> next = pNew;
-		pEnd = pNew;
-		pNew -> next = NULL;
-	}
+        //尾插法
+        pNew -> a = a;
+        pNew -> b = b;
+        pre ->  next = pNew;
+        pre = pNew;
+    }
+    pNew -> next = NULL;
+    printf("\n");
 }
 
-int add_polynomial(Node *pHead1, Node *pHead2) {  //多项式相加
-	Node *pHead = (Node *)malloc(Node);
-	Node *p1 = pHead1 -> next;
-	Node *p2 = pHead2 -> next;
-	Noed *pNew = NULL, *ptmp1 = NULL, *ptmp2 = NULL;
-	//int flag = 0;
+//多项式相乘时相同项的处理，采用插入法
+void insert(Node *pHead, int ta, int tb) {
+    Node *p = pHead -> next, *pNew, *pEnd = pHead;
 
-	pHead -> next = NULL;
+    while(p != NULL) {
+        if(p -> b == tb) {
+            p -> a += ta;
+            return;
+        }
+        pEnd = p;
+        p = p -> next;
+    }
 
-	while(p1 != NULL) {
-		while(p2 != NULL) {
-			//flag = 0;
-			if(p1 -> b == p2 -> b) {
-				pNew = (Node *)malloc(sizeof(Node));
-				pNew -> a = p1 -> a + p2 -> a;
-				pNew -> b = p1 -> b;
-				//flag = 1;
-			} else if(p1 -> b < p2 -> b) {
-				ptmp1 = p1 -> next;//保存p1后的节点
-				p1 -> next = p2;
-	
-				ptmp2 = p2 -> next;//保存p2后的节点
-				p2 -> next = ptmp1;
-	
-				p2 = ptmp2;//p2指向第二个链表的下一个节点
-			} else {  //p2插入到p1之前
-				
-			}
-		}
+    //尾插
+    pNew = (Node *)malloc(sizeof(Node));
+    pNew -> a = ta;
+    pNew -> b = tb;
+    pEnd -> next = pNew;
 
-		/*if(!flag) {
-			ptmp1 = p1 -> next;//保存p1后的节点
-			p1 -> next = p2;
-
-			ptmp2 = p2 -> next;//保存p2后的节点
-			p2 -> next = ptmp1;
-
-			p2 = ptmp2;//p2指向第二个链表的下一个节点
-		}*/
-	}
-
+    pNew -> next = NULL;
 }
 
+//合并多项式，加、减
+void Merge(Node *pHead1, Node *pHead2, int choice) {
+    Node *p1 = pHead1 -> next, *p2 = pHead2 -> next, *p = pHead1;
+    Node *ptmp1 = NULL, *ptmp2 = NULL;
+
+    while(p1 != NULL && p2 != NULL) {
+        if(p1 -> b > p2 -> b) {  //p2插到p1前面
+            if(choice == 2) //为相减时
+                p2 -> a *= -1;
+
+            ptmp1 = p -> next;
+            p -> next = p2;
+
+            ptmp2 = p2 -> next;
+            p2 -> next = p1;
+
+            p2 = ptmp2;
+            p1 = ptmp1;
+            p = p -> next;
+        } else if(p1 -> b == p2 -> b) {
+            if(choice == 1)
+                p1 -> a += p2 -> a;
+            else if(choice == 2)
+                p1 -> a -= p2 -> a;
+            p2 = p2 -> next;
+        } else  {
+            p = p -> next;
+            p1 = p1 -> next;
+        }
+    }
+
+    if(p1 == NULL)  {
+        //p -> next = p2;
+
+        while(p2 != NULL) {
+            p2 -> a *= -1;
+            p -> next = p2;
+            p = p -> next;
+            p2 = p2 -> next;
+        }
+    }
+}
+
+//多项式相乘
+Node * Multiply(Node *pHead1, Node *pHead2) {
+    Node *p1 = pHead1 -> next, *p2 = pHead2 -> next, *pNew;
+    Node *pHead = (Node *)malloc(sizeof(Node));
+    pHead -> next = NULL;
+
+    while(p1 != NULL) {
+        p2 = pHead2 -> next;
+
+        while(p2 != NULL) {
+            pNew = (Node *)malloc(sizeof(Node));
+            if(pNew == NULL) {  //申请内存出错
+                printf("malloc error\n");
+                exit(0);
+            }
+
+            pNew -> a = p1 -> a * p2 -> a;
+            pNew -> b = p1 -> b + p2 -> b;
+
+            insert(pHead, pNew -> a, pNew -> b);
+            p2 = p2 -> next;
+        }
+        p1 = p1 -> next;
+    }
+
+    return pHead;
+}
+
+/*多项式求导*/
+int deri(Node * pHead) {
+    Node *p = pHead -> next;
+    while(p != NULL) {
+        if(!p -> b) {
+            p -> a = 0;
+        } else {
+            p->a *= p->b;
+            p->b--;
+        }
+        p = p -> next;
+    }
+}
+
+
+//输出多项式
+void print_list(Node *pHead) {
+    Node *p = pHead -> next;
+    int n = 0;
+
+    printf("\n\nResult:\n");
+
+    while(p != NULL) {
+        if(!p -> a && p -> next == NULL) {
+            printf("0\n");
+            return ;
+        }
+        if(!p -> a) { //系数为0
+            p = p -> next;
+            continue;
+        }
+        if(!p -> b) { //指数为0
+            printf("%d ", p -> a);
+        } else {
+            if(p -> a == 1 && !n) {
+                printf("X");
+            } else if(p -> a == 1 && n) {
+                printf(" + X");
+            } else if(p -> a == -1 && !n) {
+                printf(" -X");
+            } else if(p -> a == -1 && n) {
+                printf(" - X");
+            } else if(p -> a < 0) {
+                printf(" - %dX", -1 * p -> a);
+            } else {
+                if(!n) {
+                    printf("%dX", p -> a);
+                } else {
+                    printf(" + %dX", p -> a);
+                }
+            }
+
+            if(p->b != 1) //指数不为1
+                printf("^%d", p -> b);
+        }
+
+        n++;
+        p = p -> next;
+    }
+
+    printf("\n");
+}
+
+int getChoice(void) {
+    int choice;
+
+    while(1) {
+        printf("================================\n");
+        printf("====        1.add           ====\n");
+        printf("====        2.subtract      ====\n");
+        printf("====        3.multiply      ====\n");
+        printf("====        4.derivation    ====\n");
+        printf("====        0.exit          ====\n");
+        printf("================================\n");
+        printf("\nInput choice: ");
+        scanf("%d", &choice);
+        fflush(stdin);
+
+        if(choice == 1 || choice == 2 || choice == 3 || choice == 4 || !choice) {
+            return choice;
+        } else {
+            printf("input error, press [enter] to continue...\n");
+            getchar();
+            getchar();
+        }
+    }
+}
 
 int main (void) {
-	//新建两个多项式的链表
-	Node *pHead1 = (Node *)malloc(Node);
-	Node *pHead2 = (Node *)malloc(Node);
+    Node *pHead1 = (Node *)malloc(sizeof(Node));
+    Node *pHead2 = (Node *)malloc(sizeof(Node));
+    Node *pHead_deri = NULL; //存储求导后链表
+    pHead1 -> next = NULL;
+    pHead2 -> next = NULL;
+    int choice;
 
-	create_list(pHead1);
-	create_list(pHead2);
+    choice = getChoice();
+    switch(choice) {
+        case 1 :
+        case 2 :create_list(pHead1);
+                create_list(pHead2);
+                Merge(pHead1, pHead2, choice); break;
+        case 3 :create_list(pHead1);
+                create_list(pHead2);
+                pHead1 = Multiply(pHead1, pHead2); break;
+        case 4 :create_list(pHead1);print_list(pHead1);
+                deri(pHead1);break;
+    }
 
-
-
-
-	return 0;
+    print_list(pHead1);
+    return 0;
 }

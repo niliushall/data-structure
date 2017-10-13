@@ -118,6 +118,21 @@ Node * Multiply(Node *pHead1, Node *pHead2) {
     return pHead;
 }
 
+/*多项式求导*/
+int deri(Node * pHead) {
+    Node *p = pHead -> next;
+    while(p != NULL) {
+        if(!p -> b) {
+            p -> a = 0;
+        } else {
+            p->a *= p->b;
+            p->b--;
+            printf("=%d=\n", p->b);
+        }
+        p = p -> next;
+    }
+}
+
 
 //输出多项式
 void print_list(Node *pHead) {
@@ -131,26 +146,27 @@ void print_list(Node *pHead) {
             printf("0\n");
             return ;
         }
-        if(!p -> a) {
+        if(!p -> a) { //系数为0
             p = p -> next;
             continue;
         }
-        if(p -> a == 1) {
-            printf("X");
-        } else if(p -> a < 0) {
-            printf("%dX", p -> a);
+        if(!p -> b) { //指数为0
+            printf("%d ", p -> a);
         } else {
-            if(!n) {
+            if(p -> a == 1) {
+                printf("X");
+            } else if(p -> a < 0) {
                 printf("%dX", p -> a);
             } else {
-                printf("+%dX", p -> a);
+                if(!n) {
+                    printf("%dX", p -> a);
+                } else {
+                    printf("+%dX", p -> a);
+                }
             }
-        }
 
-        if(p -> b == 0) {
-            ;
-        } else {
-            printf("^%d", p -> b);
+            if(p->b != 1) //指数不为1
+                printf("^%d", p -> b);
         }
 
         n++;
@@ -168,13 +184,14 @@ int getChoice(void) {
         printf("====        1.add           ====\n");
         printf("====        2.subtract      ====\n");
         printf("====        3.multiply      ====\n");
+        printf("====        4.derivation    ====\n");
         printf("====        0.exit          ====\n");
         printf("================================\n");
         printf("\nInput choice: ");
         scanf("%d", &choice);
         fflush(stdin);
 
-        if(choice == 1 || choice == 2 || choice == 3 || !choice) {
+        if(choice == 1 || choice == 2 || choice == 3 || choice == 4 || !choice) {
             return choice;
         } else {
             printf("input error, press [enter] to continue...\n");
@@ -187,18 +204,22 @@ int getChoice(void) {
 int main (void) {
     Node *pHead1 = (Node *)malloc(sizeof(Node));
     Node *pHead2 = (Node *)malloc(sizeof(Node));
+    Node *pHead_deri = NULL; //存储求导后链表
     pHead1 -> next = NULL;
     pHead2 -> next = NULL;
     int choice;
 
-    create_list(pHead1);
-    create_list(pHead2);
-
     choice = getChoice();
     switch(choice) {
         case 1 :
-        case 2 : Merge(pHead1, pHead2, choice); break;
-        case 3 : pHead1 = Multiply(pHead1, pHead2); break;
+        case 2 :create_list(pHead1);
+                create_list(pHead2);
+                Merge(pHead1, pHead2, choice); break;
+        case 3 :create_list(pHead1);
+                create_list(pHead2);
+                pHead1 = Multiply(pHead1, pHead2); break;
+        case 4 :create_list(pHead1);print_list(pHead1);
+                deri(pHead1);break;
     }
 
     print_list(pHead1);
