@@ -1,7 +1,9 @@
 #include<iostream>
+#include<cstdlib>
 #include<string>
 using namespace std;
 
+#define CLEAR system("clear")
 #define N 30 //哈夫曼树的叶子结点数
 
 typedef struct  {
@@ -87,15 +89,66 @@ void get_value(int value[], int n) {
     }
 }
 
+//输出哈夫曼编码
 void showHuffmanCode(huffmanTree ht, string huffmanCode[], int n) {
+    cout << "\nHuffman code:\n";
     for(int i =0 ; i < n ;i++) {
         cout << ht[i].value << " : ";
         cout << huffmanCode[i] << endl;
     }
 }
 
+//哈夫曼译码
+void huffmanDecode(huffmanTree ht, string code, int n) {
+    int len = code.size();
+
+    cout << "\nHuffman decode:\n";
+
+    for(int i = 0, j = 2*n-2; i < len; i++) {
+        if(code[i] == '0') {
+            j = ht[j].lchild;
+        } else if(code[i] == '1') {
+            j = ht[j].rchild;
+        }
+
+        if(!ht[j].lchild && !ht[j].rchild) {
+            cout << ht[j].value;
+            j = 2*n - 2;
+        }
+    }
+    cout << endl;
+}
+
+int menu() {
+    int choice;
+
+    CLEAR;
+    cout << "==========================\n";
+    cout << "===    Huffman Tree    ===\n";
+    cout << "==========================\n";
+    cout << "===                    ===\n";
+    cout << "===  1. Huffman code   ===\n";
+    cout << "===  2. Huffman decode ===\n";
+    cout << "===  0. Quit           ===\n";
+    cout << "===                    ===\n";
+    cout << "==========================\n\n";
+    cout << "Your choice: ";
+    cin >> choice;
+
+    while(cin.fail() || choice < 0 || choice > 2) {
+        cin.clear();
+        while(cin.get() != '\n')
+            ;
+        cout << "Please enter a number(0 ~ 2).\n";
+        cin >> choice;
+    }
+    CLEAR;
+
+    return choice;
+}
+
 int main() {
-    int n;
+    int n, choice;
     int value[N];
     huffmanTree ht;
 
@@ -105,33 +158,20 @@ int main() {
 
     get_value(value, n);
     create_huffmantree(ht, value, n);
-    create_huffmanCode(ht, huffmanCode, n);
-    showHuffmanCode(ht, huffmanCode, n);
+// for(int i = 0; i < 2*n-1;i++)
+// cout << ht[i].value << ' ' << ht[i].parent << endl;
+    choice = menu();
+
+    if(choice == 1) {
+        create_huffmanCode(ht, huffmanCode, n);
+// cout << "123\n";
+        showHuffmanCode(ht, huffmanCode, n);
+    } else if (choice == 2) {
+        string code;
+        cout << "Enter code :\n";
+        cin >> code;
+        huffmanDecode(ht, code, n);
+    }
 
     return 0;
 }
-
-// int find_even(BiTree root) {
-//     int count_l = 0, count_r = 0;
-//     int count = 0;
-
-//     if(!root->lchild || !root->rchild)
-//         return 0;
-//     count_l = find_even(root->lchild);
-//     count_r = find_even(root->rchild);
-
-//     return (count_l + count_r);
-// }
-
-// void swapTree(BiTree root) {
-//     Bitree temp;
-
-//     if(!root)
-//         return;
-//     tmp = root->lchild;
-//     root->lchild = root->rchild;
-//     root->rchild = temp;
-
-//     swapTree(root->lchild);
-//     swapTree(root->rchild);
-// }
